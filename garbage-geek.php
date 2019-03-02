@@ -24,6 +24,9 @@
  * Text Domain:       garbage-geek
  * Domain Path:       /languages
  */
+
+include('helpers/tipCategory.php');
+
 //Save Custom Fields
 	//Geek_tip - tip_category 
 	function save_geek_tip_tip_category_fields_meta( $post_id, $post) {   
