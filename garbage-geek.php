@@ -150,4 +150,21 @@ function garbage_geek_plugin_geek_tip_post_metaboxes(){
     }
     // register_deactivation_hook( __FILE__, 'whisper_room_plugin_application_de_activation' );
 //Unsinstallation
-?>
+
+function garbage_geek_add_tip_category_page() {
+	$PageGuid = site_url() . "/tip_category";
+	$my_post  = array( 'post_title'     => 'Tip Category',
+					'post_type'      => 'page',
+					'post_name'      => 'tip-category',
+					'post_content'   => '',
+					'post_status'    => 'publish',
+					'comment_status' => 'closed',
+					'ping_status'    => 'closed',
+					'post_author'    => 1,
+					'menu_order'     => 0,
+					'guid'           => $PageGuid );
+
+	$PageID = wp_insert_post( $my_post, FALSE );
+}
+
+register_activation_hook( __FILE__, 'garbage_geek_add_tip_category_page' );
