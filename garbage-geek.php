@@ -25,7 +25,7 @@
  * Domain Path:       /languages
  */
 
-function create_post_type() {
+function create_geek_post_type() {
 	register_post_type( 'geek_tip',
 		array(
 		'labels' => array(
@@ -37,4 +37,10 @@ function create_post_type() {
 		)
 	);
 }
-add_action( 'init', 'create_post_type' );
+
+function remove_geek_post_type() {
+	unregister_post_type('geek_tip');
+}
+add_action( 'init', 'create_geek_post_type' );
+
+register_deactivation_hook( __FILE__, 'remove_geek_post_type' );

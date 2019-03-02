@@ -1,1 +1,0 @@
-# garbage-geek-plugins
