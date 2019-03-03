@@ -148,12 +148,12 @@ function garbage_geek_plugin_rc_totals_post_metaboxes(){
 	function garbage_geek_plugin_create_rc_totals_post_type() {
 
 		$lbls = array(
-			'name' => __('Recycling Center Totals'),
-			'singular_name' => __('Recycling Center Total'),
-			'add_new'            => __( 'Add New Recycling Center Total' ),
-			'add_new_item'       => __( 'Add New Recycling Center Total' ),
-			'edit_item'          => __( 'Edit Recycling Center Total' ),
-			'new_item'           => __( 'Add New Recycling Center Total' ),
+			'name' => __('Commodity Recycling'),
+			'singular_name' => __('Commodity Recycling'),
+			'add_new'            => __( 'Add New Recycling Center' ),
+			'add_new_item'       => __( 'Add New Recycling Center' ),
+			'edit_item'          => __( 'Edit Recycling Center' ),
+			'new_item'           => __( 'Add New Recycling Center' ),
 			'view_item'          => __( 'View Recycling Center Total' ),
 			'search_items'       => __( 'Search Recycling Center Total' ),
 			'not_found'          => __( 'No Recycling Center Totals found' ),
