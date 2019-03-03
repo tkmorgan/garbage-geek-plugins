@@ -59,7 +59,7 @@ class recyclingCenterTotals {
                     <option value=''>Select</option>
                     <?php foreach( self::$center_type['options'] as $tslug => $tname ):?>
                         <option <?=self::selectedChk($tslug, $meta_val)?>><?=$tname?></option>
-                    <?endforeach;?>
+                    <?php endforeach;?>
                 </select>
             </label>
         </div>
