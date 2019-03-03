@@ -13,7 +13,7 @@ class swmfs {
         'slug' => 'landfill-type',
         'name' => 'Landfill Type',
         'options' => [
-            'garbage' => 'Garbage (Class 1)',
+            'recycled' => 'Recycled',
             'diverted' => 'C&D (class 3) Diverted'
         ]
     ];
