@@ -29,6 +29,7 @@ include('helpers/tipCategory.php');
 include('helpers/recyclingCenterTotals.php');
 include('helpers/landfillClasses.php');
 include('helpers/swmfs.php');
+include('helpers/mulch.php');
 
 //Save Custom Fields
 	//Geek_tip - tip_category 
@@ -71,6 +72,7 @@ include('helpers/swmfs.php');
 		recyclingCenterTotals::save_rc_totals_rc_totals_fields_meta( $post_id, $post );
 		save_geek_tip_tip_category_fields_meta( $post_id, $post );
 		swmfs::save_fields_meta( $post_id, $post );
+		mulch::save_fields_meta( $post_id, $post );
 	}
 
 	add_action( 'save_post', 'garbage_geek_save_post',1 ,2 );
@@ -129,6 +131,24 @@ function garbage_geek_plugin_landfill_classes_post_metaboxes() {
 		'Waste Types (in tons)',
 		'garbage_geek_plugin_landfill_classes',
 		array('landfill_classes'),
+		'normal',
+		'default',
+		'high'
+	);
+}
+
+function garbage_geek_plugin_mulch_post_metaboxes() {
+	//Commodity Recycling Centers
+	function garbage_geek_plugin_mulch(){
+		global $post;
+		mulch::get_metaboxes_for_text_fields($post);
+	}
+
+	add_meta_box(
+		'mulch',
+		'Mulch (in Tons)',
+		'garbage_geek_plugin_mulch',
+		array('mulch'),
 		'normal',
 		'default',
 		'high'
@@ -236,6 +256,37 @@ function garbage_geek_plugin_rc_totals_post_metaboxes(){
 		);
 	}
 
+		// mulch
+		function garbage_geek_plugin_create_mulch_post_type() {
+
+			$lbls = array(
+				'name' => __('Mulch'),
+				'singular_name' => __('Mulch'),
+				'add_new'            => __( 'Add New Mulch Data' ),
+				'add_new_item'       => __( 'Add New Mulch Data' ),
+				'edit_item'          => __( 'Edit Mulch Data' ),
+				'new_item'           => __( 'Add New Mulch Data' ),
+				'view_item'          => __( 'View Mulch Data' ),
+				'search_items'       => __( 'Search Mulch Data' ),
+				'not_found'          => __( 'No mulch data found' ),
+				'not_found_in_trash' => __( 'No mulch data found in trash' )
+			);
+			$supports = array('title'/*, 'thumbnail','editor'*/,'catagories');
+			register_post_type( 'mulch',
+				array(
+				'labels' => $lbls,
+				'public' => true,
+				'has_archive' => true,
+				'description'=> __('Post type for mulch.'),
+				'capability_type' => 'post',
+				'rewrite'     => array( 'slug' => 'mulch'), // my custom slug
+				'has_archive' => true,
+				'supports' => $supports,
+				'register_meta_box_cb' => 'garbage_geek_plugin_mulch_post_metaboxes'
+				)
+			);
+		}
+	
 		//SWMF (Solid Waste Management Facility)
 		function garbage_geek_plugin_create_swmf_post_type() {
 
@@ -303,6 +354,7 @@ function garbage_geek_plugin_rc_totals_post_metaboxes(){
 		garbage_geek_plugin_create_geek_tip_post_type();
 		garbage_geek_plugin_create_landfill_class_post_type();
 		garbage_geek_plugin_create_swmf_post_type();
+		garbage_geek_plugin_create_mulch_post_type();
 	}
 //Activations
     function garbage_geek_plugin_application_activation(){
