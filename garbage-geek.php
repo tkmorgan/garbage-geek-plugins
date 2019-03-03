@@ -334,7 +334,7 @@ function garbage_geek_add_tip_category_page() {
 	$PageID = wp_insert_post( $my_post, FALSE );
 }
 
-register_activation_hook( __FILE__, 'garbage_geek_add_tip_category_page' );
+# register_activation_hook( __FILE__, 'garbage_geek_add_tip_category_page' );
 
 function garbage_geek_add_subscribe_page() {
 	$PageGuid = site_url() . "/subscribe";
@@ -352,7 +352,7 @@ function garbage_geek_add_subscribe_page() {
 	$PageID = wp_insert_post( $my_post, FALSE );
 }
 
-register_activation_hook( __FILE__, 'garbage_geek_add_subscribe_page' );
+# register_activation_hook( __FILE__, 'garbage_geek_add_subscribe_page' );
 
 
 
