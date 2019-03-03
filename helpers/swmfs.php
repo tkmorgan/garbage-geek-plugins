@@ -1,23 +1,20 @@
 <?php
-class recyclingCenterTotals {
-    public static $recyclable_types = [
-        'aluminum' => 'Aluminum',
-        'plastics-commingled' => 'Plastics ("Commingled")',
-        'glass' => 'Glass',
-        'mixed-paper' => 'Mixed Paper',
-        'cardboard' => 'Cardboard',
-        'steel-tin' => 'Steel/Tin',
-        'newspaper' => 'Newspaper',
-        'all-mixed-no-glass' => 'All Mixed (no glass)'
+class swmfs {
+    public static $waste_types = [
+        'ts-scrap-metal*' => 'TS Scrap Metal*',
+        'ts-tires' => 'TS Tires',
+        'ts-carpet' => 'TS Carpet',
+        'hhw-e-waste' => 'HHW E-Waste',
+        'hhw-mixed-recycling' => 'HHW Mixed Recycling',
+        'hhw-diverted' => 'HHW Diverted'
     ];
 
-    public static $center_type = [
-        'slug' => 'center-type',
-        'name' => 'Center Type',
+    public static $landfill_type = [
+        'slug' => 'landfill-type',
+        'name' => 'Landfill Type',
         'options' => [
-            'drop-off-centers' => 'Drop Off Centers',
-            'curbside' => 'Curbside',
-            'other' => 'Other'    
+            'garbage' => 'Garbage (Class 1)',
+            'diverted' => 'C&D (class 3) Diverted'
         ]
     ];
 
@@ -57,7 +54,7 @@ class recyclingCenterTotals {
                     name="<?=$slug?>" 
                 >
                     <option value=''>Select</option>
-                    <?foreach( self::$center_type['options'] as $tslug => $tname ):?>
+                    <?foreach( self::$landfill_type['options'] as $tslug => $tname ):?>
                         <option <?=self::selectedChk($tslug, $meta_val)?>><?=$tname?></option>
                     <?endforeach;?>
                 </select>
@@ -103,16 +100,16 @@ class recyclingCenterTotals {
 	}
 
     public static function get_metaboxes_for_text_fields($post) {
-        foreach( self::$recyclable_types as $slug => $name ) {
+        foreach( self::$waste_types as $slug => $name ) {
 			wp_nonce_field( basename( __FILE__ ), "${slug}_fields" );
             $meta_val = get_post_meta( $post->ID, $slug, true );
             self::get_metabox_text_markup( $slug, $name, $meta_val );
 		}
     }
 
-    public static function get_metabox_for_rc_center_category_field($post) {
-        $slug = self::$center_type['slug'];
-        $name = self::$center_type['name'];
+    public static function get_metabox_for_category_field($post) {
+        $slug = self::$landfill_type['slug'];
+        $name = self::$landfill_type['name'];
 
         wp_nonce_field( basename( __FILE__ ), "${slug}_fields" );
         $meta_val = get_post_meta( $post->ID, $slug, true );
@@ -120,16 +117,17 @@ class recyclingCenterTotals {
         self::get_metabox_option_markup( $slug, $name, $meta_val );
     }
 
-    	// rc_totals 
-	public static function save_rc_totals_rc_totals_fields_meta( $post_id, $post) { 
-		foreach(array_keys( recyclingCenterTotals::$recyclable_types ) as $key)
-		recyclingCenterTotals::save_generic_category_fields_meta( $key, $post_id, $post );
+    	// landfill classes 
+	public static function save_fields_meta( $post_id, $post) { 
+		foreach(array_keys( self::$waste_types ) as $key)
+		    self::save_generic_category_fields_meta( $key, $post_id, $post );
 		
-			// save our center type field
-			recyclingCenterTotals::save_generic_category_fields_meta( 
-			recyclingCenterTotals::$center_type['slug'], 
+		// save our center type field
+		self::save_generic_category_fields_meta( 
+				self::$landfill_type['slug'], 
 			$post_id, 
 			$post 
 		);
 	}
+
 }

@@ -27,6 +27,8 @@
 
 include('helpers/tipCategory.php');
 include('helpers/recyclingCenterTotals.php');
+include('helpers/landfillClasses.php');
+include('helpers/swmfs.php');
 
 //Save Custom Fields
 	//Geek_tip - tip_category 
@@ -63,24 +65,15 @@ include('helpers/recyclingCenterTotals.php');
 			}
 		endforeach;
 	}
-	add_action( 'save_post', 'save_geek_tip_tip_category_fields_meta',1 ,2 );
-	//Geek_tip - encoragement or critisizm
 
-
-	// rc_totals 
-	function save_rc_totals_rc_totals_fields_meta( $post_id, $post) { 
-		foreach(array_keys( recyclingCenterTotals::$recyclable_types ) as $key)
-		recyclingCenterTotals::save_generic_category_fields_meta( $key, $post_id, $post );
-		
-			// save our center type field
-			recyclingCenterTotals::save_generic_category_fields_meta( 
-			recyclingCenterTotals::$center_type['slug'], 
-			$post_id, 
-			$post 
-		);
+	function garbage_geek_save_post( $post_id, $post ) {
+		landfillClasses::save_landfill_classes_fields_meta( $post_id, $post );
+		recyclingCenterTotals::save_rc_totals_rc_totals_fields_meta( $post_id, $post );
+		save_geek_tip_tip_category_fields_meta( $post_id, $post );
+		swmfs::save_fields_meta( $post_id, $post );
 	}
 
-	add_action( 'save_post', 'save_rc_totals_rc_totals_fields_meta',1 ,2 );
+	add_action( 'save_post', 'garbage_geek_save_post',1 ,2 );
 
 //Metaboxes
 function garbage_geek_plugin_geek_tip_post_metaboxes(){
@@ -123,8 +116,46 @@ function garbage_geek_plugin_geek_tip_post_metaboxes(){
 	//Encouragement or Critizism
 }
 
+function garbage_geek_plugin_landfill_classes_post_metaboxes() {
+	//Commodity Recycling Centers
+	function garbage_geek_plugin_landfill_classes(){
+		global $post;
+		landfillClasses::get_metaboxes_for_text_fields($post);
+		landfillClasses::get_metabox_for_category_field($post);
+	}
+
+	add_meta_box(
+		'landfill_classes',
+		'Waste Types (in tons)',
+		'garbage_geek_plugin_landfill_classes',
+		array('landfill_classes'),
+		'normal',
+		'default',
+		'high'
+	);
+}
+
+function garbage_geek_plugin_swmf_post_metaboxes() {
+	//Commodity Recycling Centers
+	function garbage_geek_plugin_swmf(){
+		global $post;
+		swmfs::get_metaboxes_for_text_fields($post);
+		swmfs::get_metabox_for_category_field($post);
+	}
+
+	add_meta_box(
+		'swmfs',
+		'SWMF RECYCLED/DIVERTED (in Tons)',
+		'garbage_geek_plugin_swmf',
+		array('swmf'),
+		'normal',
+		'default',
+		'high'
+	);
+}
+
 function garbage_geek_plugin_rc_totals_post_metaboxes(){
-	//Tip Catagory
+	//Commodity Recycling Centers
 	function garbage_geek_plugin_rc_totals(){
 		global $post;
 		recyclingCenterTotals::get_metaboxes_for_text_fields($post);
@@ -133,18 +164,17 @@ function garbage_geek_plugin_rc_totals_post_metaboxes(){
 
 	add_meta_box(
 		'rc_totals',
-		'Recycling Center Counts',
+		'Recycling Center Counts (in pounds)',
 		'garbage_geek_plugin_rc_totals',
 		array('rc_totals'),
 		'normal',
 		'default',
 		'high'
 	);
-	//Encouragement or Critizism
 }
 
 //Custom Post Types
-	//Geek_tip
+	//Commodity Recycling
 	function garbage_geek_plugin_create_rc_totals_post_type() {
 
 		$lbls = array(
@@ -175,6 +205,68 @@ function garbage_geek_plugin_rc_totals_post_metaboxes(){
 		);
 	}
 
+	//Landfills
+	function garbage_geek_plugin_create_landfill_class_post_type() {
+
+		$lbls = array(
+			'name' => __('Landfills'),
+			'singular_name' => __('Landfill'),
+			'add_new'            => __( 'Add New Landfill Class' ),
+			'add_new_item'       => __( 'Add New Landfill Class' ),
+			'edit_item'          => __( 'Edit Landfill Class' ),
+			'new_item'           => __( 'Add New Landfill Class' ),
+			'view_item'          => __( 'View Landfill Class' ),
+			'search_items'       => __( 'Search Landfill Cla0ss' ),
+			'not_found'          => __( 'No Landfill Classes found' ),
+			'not_found_in_trash' => __( 'No Landfill Classes found in trash' )
+		);
+		$supports = array('title'/*, 'thumbnail','editor'*/,'catagories');
+		register_post_type( 'landfill_classes',
+			array(
+			'labels' => $lbls,
+			'public' => true,
+			'has_archive' => true,
+			'description'=> __('Post type for Landfill Classes.'),
+			'capability_type' => 'post',
+			'rewrite'     => array( 'slug' => 'landfill_classes'), // my custom slug
+			'has_archive' => true,
+			'supports' => $supports,
+			'register_meta_box_cb' => 'garbage_geek_plugin_landfill_classes_post_metaboxes'
+			)
+		);
+	}
+
+		//SWMF (Solid Waste Management Facility)
+		function garbage_geek_plugin_create_swmf_post_type() {
+
+			$lbls = array(
+				'name' => __('SWMFs'),
+				'singular_name' => __('SWMF'),
+				'add_new'            => __( 'Add New SWMF Class' ),
+				'add_new_item'       => __( 'Add New SWMF Class' ),
+				'edit_item'          => __( 'Edit SMWF Class' ),
+				'new_item'           => __( 'Add New SWMF Class' ),
+				'view_item'          => __( 'View SWMF Class' ),
+				'search_items'       => __( 'Search SWMF Cla0ss' ),
+				'not_found'          => __( 'No SWMF Classes found' ),
+				'not_found_in_trash' => __( 'No SWMF Classes found in trash' )
+			);
+			$supports = array('title'/*, 'thumbnail','editor'*/,'catagories');
+			register_post_type( 'swmf',
+				array(
+				'labels' => $lbls,
+				'public' => true,
+				'has_archive' => true,
+				'description'=> __('Post type for SWMF.'),
+				'capability_type' => 'post',
+				'rewrite'     => array( 'slug' => 'smwf'), // my custom slug
+				'has_archive' => true,
+				'supports' => $supports,
+				'register_meta_box_cb' => 'garbage_geek_plugin_swmf_post_metaboxes'
+				)
+			);
+		}
+	
 	//Geek_tip
 	function garbage_geek_plugin_create_geek_tip_post_type() {
 		$lbls = array(
@@ -209,6 +301,8 @@ function garbage_geek_plugin_rc_totals_post_metaboxes(){
 	function garbage_geek_init() {
 		garbage_geek_plugin_create_rc_totals_post_type();
 		garbage_geek_plugin_create_geek_tip_post_type();
+		garbage_geek_plugin_create_landfill_class_post_type();
+		garbage_geek_plugin_create_swmf_post_type();
 	}
 //Activations
     function garbage_geek_plugin_application_activation(){
