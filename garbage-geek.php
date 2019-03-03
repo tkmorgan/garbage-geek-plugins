@@ -26,6 +26,7 @@
  */
 
 include('helpers/tipCategory.php');
+include('helpers/recyclingCenterTotals.php');
 
 //Save Custom Fields
 	//Geek_tip - tip_category 
@@ -64,6 +65,50 @@ include('helpers/tipCategory.php');
 	}
 	add_action( 'save_post', 'save_geek_tip_tip_category_fields_meta',1 ,2 );
 	//Geek_tip - encoragement or critisizm
+
+
+	function save_generic_category_fields_meta( $field_name, $post_id, $post) {   
+		
+		// Return if the user doesn't have edit permissions.
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return $post_id;
+		}
+		// Verify this came from the our screen and with proper authorization,
+		// because save_post can be triggered at other times.
+		if ( ! isset( $_POST[$field_name] ) || ! wp_verify_nonce( $_POST[$field_name . '_fields'], basename(__FILE__) ) ) {
+			return $post_id;
+		}
+		// Now that we're authenticated, time to save the data.
+		// This sanitizes the data from the field and saves it into an array $events_meta.
+		$events_meta[$field_name] = esc_textarea( $_POST[$field_name] );
+		// Cycle through the $events_meta array.
+		// Note, in this example we just have one item, but this is helpful if you have multiple.
+		foreach ( $events_meta as $key => $value ) :
+			// Don't store custom data twice
+			if ( 'revision' === $post->post_type ) {
+				return;
+			}
+			if ( get_post_meta( $post_id, $key, false ) ) {
+				// If the custom field already has a value, update it.
+				update_post_meta( $post_id, $key, $value );
+			} else {
+				// If the custom field doesn't have a value, add it.
+				add_post_meta( $post_id, $key, $value);
+			}
+			if ( ! $value ) {
+				// Delete the meta key if there's no value
+				delete_post_meta( $post_id, $key );
+			}
+		endforeach;
+	}
+
+	// rc_totals 
+	function save_rc_totals_rc_totals_fields_meta( $post_id, $post) { 
+		foreach(array_keys( recyclingCenterTotals::$types ) as $key)
+			save_generic_category_fields_meta( $key, $post_id, $post );
+	}
+
+	add_action( 'save_post', 'save_rc_totals_rc_totals_fields_meta',1 ,2 );
 
 //Metaboxes
 function garbage_geek_plugin_geek_tip_post_metaboxes(){
@@ -104,9 +149,74 @@ function garbage_geek_plugin_geek_tip_post_metaboxes(){
 		'high'
 	);
 	//Encouragement or Critizism
-	
 }
+
+function garbage_geek_plugin_rc_totals_post_metaboxes(){
+	//Tip Catagory
+	function garbage_geek_plugin_rc_totals(){
+		global $post;
+		foreach( recyclingCenterTotals::$types as $slug => $name ) {
+			wp_nonce_field( basename( __FILE__ ), "${slug}_fields" );
+			$meta_val = get_post_meta( $post->ID, $slug, true );
+			?>
+			<div>
+				<label for="<?=$slug?>">
+					<?=$name;?>
+					<input 
+						type='text' 
+						value='<?=$meta_val?>' 
+						id='<?=$slug?>' 
+						name="<?=$slug?>" 
+						/>
+				</label>
+			</div>
+			<?php
+		}
+	}
+	add_meta_box(
+		'rc_totals',
+		'Recycling Center Counts',
+		'garbage_geek_plugin_rc_totals',
+		array('rc_totals'),
+		'normal',
+		'default',
+		'high'
+	);
+	//Encouragement or Critizism
+}
+
 //Custom Post Types
+	//Geek_tip
+	function garbage_geek_plugin_create_rc_totals_post_type() {
+
+		$lbls = array(
+			'name' => __('Recycling Center Totals'),
+			'singular_name' => __('Recycling Center Total'),
+			'add_new'            => __( 'Add New Recycling Center Total' ),
+			'add_new_item'       => __( 'Add New Recycling Center Total' ),
+			'edit_item'          => __( 'Edit Recycling Center Total' ),
+			'new_item'           => __( 'Add New Recycling Center Total' ),
+			'view_item'          => __( 'View Recycling Center Total' ),
+			'search_items'       => __( 'Search Recycling Center Total' ),
+			'not_found'          => __( 'No Recycling Center Totals found' ),
+			'not_found_in_trash' => __( 'No Recycling Center Total found in trash' )
+		);
+		$supports = array('title', 'thumbnail','editor','catagories');
+		register_post_type( 'rc_totals',
+			array(
+			'labels' => $lbls,
+			'public' => true,
+			'has_archive' => true,
+			'description'=> __('Post type for Recycling Center Totals.'),
+			'capability_type' => 'post',
+			'rewrite'     => array( 'slug' => 'rc_totals'), // my custom slug
+			'has_archive' => true,
+			'supports' => $supports,
+			'register_meta_box_cb' => 'garbage_geek_plugin_rc_totals_post_metaboxes'
+			)
+		);
+	}
+
 	//Geek_tip
 	function garbage_geek_plugin_create_geek_tip_post_type() {
 		$lbls = array(
@@ -136,7 +246,12 @@ function garbage_geek_plugin_geek_tip_post_metaboxes(){
 			)
 		);
 	}
-	add_action( 'init', 'garbage_geek_plugin_create_geek_tip_post_type' );
+	add_action( 'init', 'garbage_geek_init' );
+
+	function garbage_geek_init() {
+		garbage_geek_plugin_create_rc_totals_post_type();
+		garbage_geek_plugin_create_geek_tip_post_type();
+	}
 //Activations
     function garbage_geek_plugin_application_activation(){
         garbage_geek_plugin_create_geek_tip_post_type();
@@ -152,10 +267,10 @@ function garbage_geek_plugin_geek_tip_post_metaboxes(){
 //Unsinstallation
 
 function garbage_geek_add_tip_category_page() {
-	$PageGuid = site_url() . "/tip_category";
-	$my_post  = array( 'post_title'     => 'Tip Category',
+	$PageGuid = site_url() . "/tips";
+	$my_post  = array( 'post_title'     => 'Tips',
 					'post_type'      => 'page',
-					'post_name'      => 'tip-category',
+					'post_name'      => 'tips',
 					'post_content'   => '',
 					'post_status'    => 'publish',
 					'comment_status' => 'closed',
@@ -168,3 +283,55 @@ function garbage_geek_add_tip_category_page() {
 }
 
 register_activation_hook( __FILE__, 'garbage_geek_add_tip_category_page' );
+
+function garbage_geek_add_subscribe_page() {
+	$PageGuid = site_url() . "/subscribe";
+	$my_post  = array( 'post_title'     => 'Subscribe',
+					'post_type'      => 'page',
+					'post_name'      => 'subscribe',
+					'post_content'   => '',
+					'post_status'    => 'publish',
+					'comment_status' => 'closed',
+					'ping_status'    => 'closed',
+					'post_author'    => 1,
+					'menu_order'     => 0,
+					'guid'           => $PageGuid );
+
+	$PageID = wp_insert_post( $my_post, FALSE );
+}
+
+register_activation_hook( __FILE__, 'garbage_geek_add_subscribe_page' );
+
+
+
+add_action( 'admin_post_add_email', 'garbage_geek_admin_add_email' );
+
+function garbage_geek_admin_add_email() {
+	$email = $_REQUEST['email'];
+    // Handle request then generate response using echo or leaving PHP and using HTML
+
+	$user_name = base64_encode( $email );
+	$user_id = username_exists( $user_name );
+
+	if ( !$user_id and email_exists($user_email) == false ) {
+		$random_password = wp_generate_password( $length=12, $include_standard_special_chars=false );
+		$user_id = wp_create_user( $user_name, $random_password, $user_email );
+
+		if( is_numeric( $user_id ) ) {
+			echo $user_id;
+		} else {
+			$rv = [];
+			foreach( $user_id->errors as $cat=>$msg ) {
+				$tmp = new stdClass();
+				$tmp->cat = $cat;
+				$tmp->msg = $msg;
+				$rv[] = $tmp;
+			}
+			echo json_encode( $rv );
+		}
+	} else {
+		echo "";
+	}
+}
+
+
