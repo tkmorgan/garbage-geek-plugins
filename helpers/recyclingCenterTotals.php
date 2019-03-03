@@ -57,7 +57,7 @@ class recyclingCenterTotals {
                     name="<?=$slug?>" 
                 >
                     <option value=''>Select</option>
-                    <?foreach( self::$center_type['options'] as $tslug => $tname ):?>
+                    <?php foreach( self::$center_type['options'] as $tslug => $tname ):?>
                         <option <?=self::selectedChk($tslug, $meta_val)?>><?=$tname?></option>
                     <?endforeach;?>
                 </select>
@@ -123,7 +123,7 @@ class recyclingCenterTotals {
     	// rc_totals 
 	public static function save_rc_totals_rc_totals_fields_meta( $post_id, $post) { 
 		foreach(array_keys( recyclingCenterTotals::$recyclable_types ) as $key)
-		recyclingCenterTotals::save_generic_category_fields_meta( $key, $post_id, $post );
+		    recyclingCenterTotals::save_generic_category_fields_meta( $key, $post_id, $post );
 		
 			// save our center type field
 			recyclingCenterTotals::save_generic_category_fields_meta( 
